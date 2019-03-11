@@ -8,6 +8,13 @@
     <artifactId>pdf-handler</artifactId>
     <version>0.1</version>
 
+    <repositories>
+        <repository>
+            <id>icm</id>
+            <url>http://maven.icm.edu.pl/artifactory/repo/</url>
+            <name>ICM</name>
+        </repository>
+    </repositories>
     <build>
         <plugins>
             <plugin>

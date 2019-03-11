@@ -104,6 +104,7 @@ public class AppRunner {
 				return;
 			case "Load Barcodes":
 				barcodeList = io.loadBarcodes();
+				io.typeString(barcodeList);
 				return;
 			case "Crop PDF":
 				pCon.cropPDF(pdf);
@@ -283,6 +284,7 @@ public class AppRunner {
 		//printMenu();
 		
 		menu();
+		//new ImageProcessor();
 	}
 
 }

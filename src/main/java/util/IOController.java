@@ -4,15 +4,13 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 
 import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 
 public class IOController {
-    Robot robot;
-    Scanner kb;
+    private Scanner kb;
 
     //Read ints
     public int readInt(){
@@ -34,8 +32,11 @@ public class IOController {
             return null;
         }
         try{
-            for(File f: files)
+            System.out.print("Loading");
+            for(File f: files){
                 imgs.add(ImageIO.read(f));
+                System.out.print(".");
+            }
         } catch(IOException e){
             System.out.println(e.getMessage());
         }
@@ -138,15 +139,22 @@ public class IOController {
     //Saves barcodes to file
     public void saveBarCodes(ArrayList<String> barcodes){
         try{
-            File output = new File("txt/Barcodes.txt");
-            FileOutputStream fos = new FileOutputStream(output);
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            File output1 = new File("txt/Barcodes.txt");
+            File output2 = new File("txt/bcnpage.txt");
+            FileOutputStream fos1 = new FileOutputStream(output1);
+			FileOutputStream fos2 = new FileOutputStream(output2);
+	
+			BufferedWriter bw1 = new BufferedWriter(new OutputStreamWriter(fos1));
+			BufferedWriter bw2 = new BufferedWriter(new OutputStreamWriter(fos2));
 
-            for(String s: barcodes){
-                bw.write(s);
-                bw.newLine();
+            for(int i = 0; i < barcodes.size(); i++){
+                bw1.write(barcodes.get(i));
+                bw1.newLine();
+                bw2.write("Page "+(i+1)+": "+barcodes.get(i));
+                bw2.newLine();
             }
-            bw.close();
+			bw1.close();
+			bw2.close();
         } catch(IOException e){
             System.out.println(e.getMessage());
         }
@@ -167,8 +175,18 @@ public class IOController {
         }
     }
 
-    public void typeString(){
-
+    public void typeString(ArrayList<String> bc){
+        try{
+            Robot r = new Robot();
+            char[] chars = bc.get(0).toCharArray();
+            for(char c : chars){
+                r.keyPress(c);
+                r.keyRelease(c);
+            }
+        }catch(AWTException e){
+            System.out.println(e.getMessage());
+        }
+        
     }
 
     public IOController(){
