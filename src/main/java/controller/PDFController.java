@@ -78,6 +78,7 @@ public class PDFController {
     public PDDocument savePages(PDDocument pdf, String[] pages){
         PDDocument doc = new PDDocument();
         for(String p: pages){
+            System.out.println("page. "+p);
             doc.addPage(pdf.getPage(Integer.parseInt(p)-1));
         }
         return doc;

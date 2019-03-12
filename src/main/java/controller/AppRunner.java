@@ -3,6 +3,7 @@ package controller;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import util.IOController;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +14,7 @@ public class AppRunner {
 	private PDFController pCon;
 	private IOController io;
 	private ArrayList<BufferedImage> imgList = null;
-	private ArrayList<String> barcodeListPrintable;
+	private ArrayList<String> notDelivered =null;
 	private ArrayList<String> barcodeList = null;
 	private PDDocument ogPdf = null;
 	private PDDocument pdf = null;
@@ -36,6 +37,17 @@ public class AppRunner {
 		}
 	}
 
+	//Matchnotdelivered to barcodes
+	private void matchNotDelivered(){
+		String[] pages = new String[notDelivered.size()];
+		for(int i =0; i<notDelivered.size();i++){
+			pages[i] = ""+(barcodeList.indexOf(notDelivered.get(i))+1);
+			System.out.println(pages[i]);
+		}
+		
+		io.savePDF(pCon.savePages(pdf, pages),"notDel");
+	}
+	
 	//Enter unrecognized barcodes
 	private void enterUnrecognized(){
 		System.out.println("Enter barcodes that are unrecognizable.");
@@ -104,7 +116,6 @@ public class AppRunner {
 				return;
 			case "Load Barcodes":
 				barcodeList = io.loadBarcodes();
-				io.typeString(barcodeList);
 				return;
 			case "Crop PDF":
 				pCon.cropPDF(pdf);
@@ -140,6 +151,17 @@ public class AppRunner {
 			case "Load Images":
 				imgList = io.loadImages();
 				return;
+			case "Check Deliveredstatus":
+				notDelivered = io.checkBarcodes(barcodeList);
+				System.out.println("notdel");
+				io.printBarcodes(notDelivered);
+				return;
+			case "Match Not Delivered":
+				matchNotDelivered();
+				return;
+			case "Load Not delivered":
+				notDelivered = io.loadBarcodes();
+				
 		}
 	}
 	
@@ -166,13 +188,17 @@ public class AppRunner {
 				"Save Barcodes",										//10
 				"Save PDF of Unrecognizable Pages",		//11
 				"Enter the Unrecognizable Codes",			//12
-				"Load Images"											//13
+				"Load Images",											//13
+				"Check Deliveredstatus",							//14
+				"Match Not Delivered",								//15
+				"Load Not delivered"
 		} ;
 		ArrayList<String>  choices = new ArrayList<>();
 		while(true){
 			choices.clear();
 			choices.add(menuOptions[1]);
 			choices.add(menuOptions[7]);
+			choices.add(menuOptions[16]);
 			choices.add(menuOptions[13]);
 			if (pdf != null){
 				choices.add(menuOptions[2]);
@@ -187,9 +213,11 @@ public class AppRunner {
 			if (barcodeList != null){
 				choices.add(menuOptions[9]);
 				choices.add(menuOptions[10]);
+				choices.add(menuOptions[14]);
 				if(pdf != null)
 					choices.add(menuOptions[11]);
 				choices.add(menuOptions[12]);
+				choices.add(menuOptions[15]);
 			}
 			choices.add(menuOptions[0]);
 			String[] temp = new String[choices.size()];
@@ -284,6 +312,9 @@ public class AppRunner {
 		//printMenu();
 		
 		menu();
+		//checkIO();
+		//io.typeString("abcdefghijklmnopqrstuvxyz");
+		//try{ io.saveImage(io.checkIfDelivered(io.captureScreen(new Rectangle(1920+380,405,30,20))),"images/screencaptest.jpg"); }catch(IOException e){ System.out.println(e.getMessage()); }
 		//new ImageProcessor();
 	}
 

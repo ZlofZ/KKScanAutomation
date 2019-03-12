@@ -5,12 +5,16 @@ import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.PixelGrabber;
 import java.io.*;
 import java.util.*;
 
+
 public class IOController {
     private Scanner kb;
+    private Robot robot;
 
     //Read ints
     public int readInt(){
@@ -122,13 +126,17 @@ public class IOController {
         else System.out.println("Nothing in the Barcode list...");
     }
 
+    
+    public boolean saveImage(BufferedImage img, String name) throws IOException{
+        return ImageIOUtil.writeImage(img, name, 400);
+    }
     //Save images made from a pdf to disk
     public void saveImages(ArrayList<BufferedImage> images, String folderName){
         if (images != null)
             try {
                 new File("images/"+folderName).mkdirs();
                 for (int i = 0; i < images.size(); i++) {
-                    ImageIOUtil.writeImage(images.get(i), "images/"+folderName+"/img_" + i + ".jpg", 400);
+                    saveImage(images.get(i), "images/"+folderName+"/img_" + i + ".jpg");
                 }
             }catch (IOException e){
                 System.out.println(e.getMessage());
@@ -174,19 +182,94 @@ public class IOController {
             System.out.println(e.getMessage());
         }
     }
-
-    public void typeString(ArrayList<String> bc){
+    
+    public BufferedImage captureScreen(Rectangle area){
         try{
-            Robot r = new Robot();
-            char[] chars = bc.get(0).toCharArray();
-            for(char c : chars){
-                r.keyPress(c);
-                r.keyRelease(c);
+            robot = new Robot();
+            BufferedImage bi = robot.createScreenCapture(area);
+            return bi;
+        }catch(AWTException e){
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+    public boolean checkIfDelivered(BufferedImage img) throws IndexOutOfBoundsException{
+        int sumRed = 0, sumGreen = 0, sumBlue = 0, whitePix = 0;
+        int[] pixels = new int[img.getHeight()*img.getWidth()];
+        PixelGrabber pg = new PixelGrabber(img,0,0,100,50,pixels,0, img.getWidth());
+        try{
+            pg.grabPixels();
+        }catch(InterruptedException e){
+            System.out.println(e.getMessage());
+        }
+        for(int pixel : pixels){
+            int  red = (pixel & 0x00ff0000) >> 16;
+            int  green = (pixel & 0x0000ff00) >> 8;
+            int  blue = pixel & 0x000000ff;
+            if(red == 255 && green == 255 && blue == 255){whitePix++;}
+            else{
+                sumRed += red;
+                sumGreen += green;
+                sumBlue += blue;
+            }
+        }
+        whitePix = pixels.length - whitePix;
+        sumRed /= whitePix;
+        sumGreen /= whitePix;
+        sumBlue /= whitePix;
+        System.out.println("Red ["+sumRed/whitePix+"], Green ["+sumGreen/whitePix+"], Blue ["+sumBlue/whitePix+"]\nDelivered: "+ (sumGreen/whitePix == 2));
+        return (sumGreen/whitePix == 2);
+    }
+    public boolean checkBarcode(String barcode){
+        //type barcode into window
+        typeString(barcode);
+        //wait .5 sec
+        robot.delay(1500);
+        //type enter into window
+        robot.keyPress(KeyEvent.VK_ENTER);
+        robot.keyRelease(KeyEvent.VK_ENTER);
+        //wait .5 sec
+        robot.delay(3000);
+        //scan window for orange or green.
+        BufferedImage img = captureScreen(new Rectangle(1920+380,405,30,20));
+        return checkIfDelivered(img);
+    }
+    
+    public ArrayList<String> checkBarcodes(ArrayList<String> barcodes){
+        ArrayList<String> notDelivered = new ArrayList<>();
+        try{
+            if(robot == null)
+                robot = new Robot();
+            robot.delay(2000);
+            for(String code: barcodes){
+                if(!checkBarcode(code)){
+                    notDelivered.add(code);
+                }
             }
         }catch(AWTException e){
             System.out.println(e.getMessage());
         }
-        
+        return notDelivered;
+    }
+    
+    public void typeString(String s){
+        System.out.print("writing: ");
+        try{
+            if(robot == null) robot = new Robot();
+        }catch(AWTException e){System.out.println(e.getMessage());}
+        char[] chars = s.toCharArray();
+        robot.keyPress(KeyEvent.VK_CONTROL);
+        robot.keyPress(KeyEvent.VK_A);
+        robot.keyRelease(KeyEvent.VK_A);
+        robot.keyRelease(KeyEvent.VK_CONTROL);
+        for(char c : chars){
+            System.out.print(c);
+            robot.keyPress(KeyEvent.getExtendedKeyCodeForChar(c));
+            robot.keyRelease(KeyEvent.getExtendedKeyCodeForChar(c));
+            robot.delay(50);
+        }
+		System.out.println();
     }
 
     public IOController(){
