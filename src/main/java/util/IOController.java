@@ -15,7 +15,7 @@ import java.util.*;
 public class IOController {
     private Scanner kb;
     private Robot robot;
-
+    private final String PATH = "\\\\trafiles02\\privat$\\toblar\\Documents\\pdfhandler\\";
     //Read ints
     public int readInt(){
         int i = kb.nextInt();
@@ -85,7 +85,7 @@ public class IOController {
 
     //Finds directories
     public File[] findDirs(String startDir){
-        File dir = new File(System.getProperty("user.dir")+"/"+startDir);
+        File dir = new File(PATH+startDir);
         return dir.listFiles();
     }
     
@@ -94,7 +94,7 @@ public class IOController {
         return searchDirectory(fileType, fileType);
     }
     public File[] searchDirectory(String fileType, String path){
-        File dir = new File(System.getProperty("user.dir")+"/"+path);
+        File dir = new File(PATH+"/"+path);
         System.out.println(dir.getAbsolutePath());
         File[] matchingFiles = dir.listFiles(new FilenameFilter() {
             @Override
@@ -134,7 +134,7 @@ public class IOController {
     public void saveImages(ArrayList<BufferedImage> images, String folderName){
         if (images != null)
             try {
-                new File("images/"+folderName).mkdirs();
+                new File(PATH+"images/"+folderName).mkdirs();
                 for (int i = 0; i < images.size(); i++) {
                     saveImage(images.get(i), "images/"+folderName+"/img_" + i + ".jpg");
                 }
