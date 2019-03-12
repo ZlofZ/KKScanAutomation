@@ -90,14 +90,24 @@ public class AppRunner {
 	private void standardSequence(){
 		checkPdfController();
 		checkIO();
-		PDDocument pdf = pCon.loadPDF(PDF_PATH);
+		File[] files = io.searchDirectory("pdf");
+		if(files != null){
+			File f = io.chooseFile(files);
+			closePDFs();
+			ogPdf = pCon.fileToPDoc(f);
+			pdf = pCon.fileToPDoc(f);
+		}
 		pCon.cropPDF(pdf);
 		imgList = pCon.extractImagesFromPdf(pdf);
-		BarcodeRecognizor.findBarcodes(imgList);
+		barcodeList = BarcodeRecognizor.findBarcodes(imgList);
 		io.saveBarCodes(barcodeList);
 		io.printBarcodes(barcodeList);
-		io.savePDF(pdf);
-		io.saveImages(imgList, "pdf");
+		getNullPdf();
+		enterUnrecognized();
+		System.out.println("Check deliverystatus");
+		io.readString();
+		matchNotDelivered();
+		//io.saveImages(imgList, "pdf");
 	}
 	
 	private void mChoice(String choice){
@@ -310,8 +320,8 @@ public class AppRunner {
 
 	public AppRunner(){
 		//printMenu();
-		
-		menu();
+		standardSequence();
+		//menu();
 		//checkIO();
 		//io.typeString("abcdefghijklmnopqrstuvxyz");
 		//try{ io.saveImage(io.checkIfDelivered(io.captureScreen(new Rectangle(1920+380,405,30,20))),"images/screencaptest.jpg"); }catch(IOException e){ System.out.println(e.getMessage()); }
